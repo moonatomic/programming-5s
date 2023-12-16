@@ -25,7 +25,7 @@ int main(void) {
 
     pthread_t t_writers[WRITERS]; // Потоки читатели и писатели
     pthread_t t_readers[READERS];
-    
+
     status = 0;
 
     sem_init(&s_readers, 0, READERS); // Инициализация семафоров
@@ -54,10 +54,12 @@ int main(void) {
 }
 
 void *f_reader(void *arg) {
+    int waiting;
     while (1) { // Каждый такт читатель решает, заходить ли ему в библиотеку
         if (rand()%2 == 0) {
             sleep(1);
         } else {
+            waiting = 0;
             printf("A reader is waiting\n");
             while (1) { // Читатель может входить только когда в библиотеке нет писателей
                 pthread_mutex_lock(&mutex); // Проверяет, можно ли входить
@@ -66,9 +68,13 @@ void *f_reader(void *arg) {
                     pthread_mutex_unlock(&mutex);
                     break;
                 } else { // Если в библиотеке есть писатель, закрывает дверь и ждет, пока кто-то выйдет
-                    pthread_mutex_unlock(&mutex); 
+                    waiting = 1;
+                    pthread_mutex_unlock(&mutex);
                     sem_wait(&s_readers);
                 }
+            }
+            if (waiting == 1) {
+                sem_post(&s_readers);
             }
             printf("A reader is reading\n");
             sleep(1); // Читает
@@ -97,7 +103,7 @@ void *f_writer(void *arg) {
                     pthread_mutex_unlock(&mutex);
                     break;
                 } else { // Если в библиотеке кто-то есть, закрывает дверь и ждет, пока кто-то выйдет
-                    pthread_mutex_unlock(&mutex); 
+                    pthread_mutex_unlock(&mutex);
                     sem_wait(&s_writers);
                 }
             }
