@@ -81,10 +81,12 @@ void *f_reader(void *arg) {
             pthread_mutex_lock(&mutex); // Уменьшает количество читателей и уходит из библиотеки
             status--;
             readers++;
+            if (status == 0) { // Если выходит последним
+                sem_post(&s_readers); // Открывает двери читателям
+                sem_post(&s_writers); // Открывает двери писателям
+            }
             pthread_mutex_unlock(&mutex);
             printf("A reader goes away\n");
-            sem_post(&s_readers); // Открывает двери всем
-            sem_post(&s_writers);
         }
         sleep(1);
     }
