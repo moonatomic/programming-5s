@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
     clock_t start; // Начало и конец отсчета времени
     clock_t stop;
 
-    int n, m, e, k; // Входные параметры
+    int n, m, k; // Входные параметры
+    double e;
     char *filename = 0;
 
     if (argc < 5 || argc > 6) {
@@ -24,10 +25,10 @@ int main(int argc, char **argv) {
     } else {
         n = atoi(argv[1]); // Получение аргументов из терминала
         m = atoi(argv[2]);
-        e = atoi(argv[3]);
+        e = atof(argv[3]);
         k = atoi(argv[4]);
         if (k == 0) {
-            filename = argv[4];
+            filename = argv[5];
         }
     }
 
@@ -73,6 +74,30 @@ int main(int argc, char **argv) {
     printMatrix(n, m, a);
     printf("\n");
 
+    reflections(n, a);
+
+    x = (double*)malloc(n*sizeof(double));
+
+    timer = 0.0;
+    start = clock();
+    if (LREigenvalues(n, a, x, e) != 0) {
+        printf("Error: unable to run algorithm.\n");
+        free(a);
+        free(x);
+        return -1;
+    }
+    stop = clock();
+    timer = (double)(stop-start) / CLOCKS_PER_SEC;
+
+    printf("Found eigenvalues:\n");
+    printVector(n, x);
+    printf("This took: %lf sec.\n", timer);
+    
+    err = solutionError(n, a, x);
+    printf("Error in calculations: %10.3g.\n", err);
+
+
     free(a);
+    free(x);
     return 0;
 }
