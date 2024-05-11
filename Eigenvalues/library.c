@@ -4,7 +4,17 @@
 #include <time.h>
 #include "headers.h"
 
-#define MAXITER 100000
+#define MAXITER 1000
+
+int cmp(const void *a, const void *b) {
+    if (*(double *)a < *(double *)b) {
+        return -1;  
+    } else if (*(double *)a > *(double *)b) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 double *inputMatrix(FILE* fin, int n) {
     double* a = (double*)malloc(sizeof(double) * n*n);
@@ -34,9 +44,8 @@ void printMatrix(int n, int m, double *a) {
 
 void printVector(int n, double *x) {
     for (int i = 0; i < n; i++) {
-        printf("%10.3e ", x[i]);
+        printf("%10.3e\n", x[i]);
     }
-    printf("\n");
 }
 
 void reflections(int n, double *a) {

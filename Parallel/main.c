@@ -82,6 +82,8 @@ int main(int argc, char **argv) {
     printMatrix(n, m, x);
     printf("\nThis took %lf sec.\n", timer);
 
+    free(a);
+
     if (k == 0) {
         if (filename == 0) {
             printf("No filename.\n");
