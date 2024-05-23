@@ -3,8 +3,8 @@
 #include "headers.h"
 
 void test_sin(int amount, int prec, double left, double right) {
-    FILE *fsin;
-    fsin = fopen("sin1.dat", "w");
+    FILE *fout;
+    fout = fopen("sin1.dat", "w");
 
     double norm;
     double errmax;
@@ -13,14 +13,18 @@ void test_sin(int amount, int prec, double left, double right) {
     double points_approx[amount*prec];
     double values[amount];
     double values_approx[amount*prec];
-    double di[amount];
+
+    double xi[amount+1];
+    double v[amount+1];
 
     for (int i = 0; i < amount; i++) {
         points[i] = left + 2*right*i / amount;
         values[i] = sin(points[i]);
     }
 
-    d_Akima_fill(points, values, amount, di);
+    xi_fill(points, xi, amount);
+    v_fill(v, points, values, xi, amount);
+
     norm = 0;
 
     for (int i = 0; i < amount; i++) {
@@ -28,22 +32,16 @@ void test_sin(int amount, int prec, double left, double right) {
             points_approx[i*prec + j] = left + 2*right*(i*prec + j) / (amount*prec);
         }
         for (int j = 0; j < prec; j++) {
-            if (i < 2) {
-                values_approx[i*prec + j] = interpol_pol(points_approx[i*prec + j], points[0], points[1], points[2], values[0], values[1], values[2], di[2]);
-            } else if (i > amount-3) {
-                values_approx[i*prec + j] = interpol_pol(points_approx[i*prec + j], points[amount-3], points[amount-2], points[amount-1], values[amount-3], values[amount-2], values[amount-1], di[amount-3]);
-            } else {
-                values_approx[i*prec + j] = general_pol(points_approx[i*prec + j], points[i], points[i+1], values[i], values[i+1], di[i], di[i+1]);
-            }
+            values_approx[i*amount + j] = general(points_approx[i*prec + j], v[i], v[i+1], values[i], points[i], xi[i], xi[i+1]);
         }
     }
-    for (int k = 2*prec+1; k < amount*prec-3*prec; k++) {
-                fprintf(fsin, "%lf %lf %lf %lf\n", points_approx[k], values_approx[k], fabs(points_approx[k]), 10*fabs(sin(points_approx[k]) - values_approx[k]));
+    for (int k = 0; k < amount*prec - 2*prec; k++) {
+        fprintf(fout, "%lf %lf %lf %lf\n", points_approx[k], values_approx[k], sin(points_approx[k]), 3*fabs(sin(points_approx[k]) - values_approx[k]));
         if (fabs(sin(points_approx[k]) - values_approx[k]) > norm) {
             norm = fabs(sin(points_approx[k]) - values_approx[k]);
             errmax = points_approx[k];
         }
     }
-    fclose(fsin);
+    fclose(fout);
     printf("Error for sin(x) at %d points:\n%lf at x=%lf\n", amount, norm, errmax);
 }
